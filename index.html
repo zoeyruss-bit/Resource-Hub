@@ -5,15 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Resource Hub</title>
 <meta name="description" content="A personal hub for design, motion and build resources.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header class="header">
-    <h1>Resource Hub</h1>
+    <h1 class="wordmark">Resource<span class="amp"> </span><em>Hub</em></h1>
     <p class="sub">Everything I reach for, in one place.</p>
-    <input id="search" class="search" type="search" placeholder="Search resources" autocomplete="off" aria-label="Search resources">
+    <p id="meta" class="meta"></p>
+
+    <div class="controls">
+      <input id="search" class="search" type="search" placeholder="Search" autocomplete="off" aria-label="Search resources">
+      <button id="clear" class="clear" hidden></button>
+    </div>
   </header>
+
+  <section id="favs" class="favs" aria-label="Favorites"></section>
 
   <nav id="nav" class="nav" aria-label="Categories"></nav>
 
