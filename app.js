@@ -5,7 +5,6 @@ const nav    = document.getElementById("nav");
 const tagbar = document.getElementById("tagbar");
 const favs   = document.getElementById("favs");
 const search = document.getElementById("search");
-const hint   = document.getElementById("hint");
 const reset  = document.getElementById("reset");
 const empty  = document.getElementById("empty");
 const meta   = document.getElementById("meta");
@@ -47,21 +46,21 @@ function matches(item) {
 
 /* ---- Templates ---- */
 
-function markup(item, n, extraClass = "") {
+function markup(item, extraClass = "") {
   const h = host(item.url);
-  const num = n == null ? "" : String(n).padStart(2, "0");
   return `
-    <a class="row ${extraClass}" href="${esc(item.url)}" target="_blank" rel="noopener">
-      <span class="num">${num}</span>
+    <a class="card ${extraClass}" href="${esc(item.url)}" target="_blank" rel="noopener">
       <span class="mark" data-letter="${esc(item.name[0])}">
-        <img alt="" loading="lazy" decoding="async" data-host="${esc(h)}"
+        <img alt="" loading="lazy" decoding="async"
+             data-host="${esc(h)}"
              src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128"
              onerror="iconFallback(this)">
       </span>
-      <span class="row-name">${esc(item.name)}</span>
-      <span class="row-note">${item.note ? esc(item.note) : ""}</span>
-      <span class="leader" aria-hidden="true"></span>
-      <span class="row-host">${esc(h)}</span>
+      <span class="card-body">
+        <span class="card-name">${esc(item.name)}</span>
+        ${item.note ? `<span class="card-note">${esc(item.note)}</span>` : ""}
+        <span class="card-host">${esc(h)}</span>
+      </span>
     </a>`;
 }
 
@@ -84,8 +83,8 @@ function buildFavs() {
 
   favs.hidden = false;
   favs.innerHTML =
-    `<p class="label">Favorites</p>
-     <div class="fav-row">${starred.map(i => markup(i, null, "row--mini")).join("")}</div>`;
+    `<h2 class="eyebrow">Favorites</h2>
+     <div class="fav-row">${starred.map(i => markup(i, "card--mini")).join("")}</div>`;
 }
 
 /* ---- Render ---- */
@@ -101,14 +100,13 @@ function render() {
       count += items.length;
       return `
         <section class="group">
-          <h2 class="group-title"><span>${esc(c.name)}</span><span class="group-count">${String(items.length).padStart(2, "0")}</span></h2>
-          <div class="rows">${items.map((i, n) => markup(i, n + 1)).join("")}</div>
+          <h2 class="group-title">${esc(c.name)}</h2>
+          <div class="cards">${items.map(i => markup(i)).join("")}</div>
         </section>`;
     }).join("");
 
   empty.hidden = count > 0;
   reset.hidden = filtered();
-  hint.hidden = !filtered();
 
   meta.textContent = filtered()
     ? `${ALL.length} links · ${CATEGORIES.length} categories`
@@ -118,7 +116,7 @@ function render() {
   buildTagbar();
   buildNav();
 
-  visible = [...favs.querySelectorAll(".row"), ...grid.querySelectorAll(".row")];
+  visible = [...favs.querySelectorAll(".card"), ...grid.querySelectorAll(".card")];
   cursor = -1;
 }
 
