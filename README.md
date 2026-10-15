@@ -2,7 +2,7 @@
 
 A personal hub for design, motion and build resources. Plain HTML, CSS and a bit of JavaScript. No build step, no dependencies.
 
-**Live:** https://zoeyruss-bit.github.io/resource-hub
+**Live:** https://zoeyruss-bit.github.io/Resource-Hub
 
 ## How to add a resource
 
