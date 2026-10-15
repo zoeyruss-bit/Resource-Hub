@@ -2,134 +2,182 @@
 
 const grid   = document.getElementById("grid");
 const nav    = document.getElementById("nav");
+const tagbar = document.getElementById("tagbar");
 const favs   = document.getElementById("favs");
 const search = document.getElementById("search");
-const clear  = document.getElementById("clear");
+const hint   = document.getElementById("hint");
+const reset  = document.getElementById("reset");
 const empty  = document.getElementById("empty");
 const meta   = document.getElementById("meta");
 
 let activeCategory = "All";
 let activeTag = null;
 let query = "";
+let cursor = -1;          // keyboard selection into the visible list
+let visible = [];         // the <a> elements currently rendered, in order
 
 const esc = s => String(s).replace(/[&<>"]/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-function host(url) {
+const host = url => {
   try { return new URL(url).hostname.replace(/^www\./, ""); }
   catch { return url; }
-}
+};
 
-function matches(item, cat) {
+const ALL = CATEGORIES.flatMap(c => c.items.map(i => ({ ...i, cat: c.name })));
+const TAGS = [...new Set(ALL.flatMap(i => i.tags || []))].sort();
+
+const filtered = () => !activeTag && !query && activeCategory === "All";
+
+function matches(item) {
   if (activeTag && !(item.tags || []).includes(activeTag)) return false;
   if (!query) return true;
-  const hay = [item.name, item.note, item.url, cat, ...(item.tags || [])].join(" ");
-  return hay.toLowerCase().includes(query);
+  return [item.name, item.note, item.url, item.cat, ...(item.tags || [])]
+    .join(" ").toLowerCase().includes(query);
 }
 
-function card(item) {
-  const h = host(item.url);
-  const tags = (item.tags || [])
-    .map(t => `<button class="tag" data-tag="${esc(t)}">${esc(t)}</button>`).join("");
+/* ---- Templates ---- */
 
+function markup(item, extraClass = "") {
+  const h = host(item.url);
   return `
-    <li class="cell">
-      <article class="card">
-        <a class="card-link" href="${esc(item.url)}" target="_blank" rel="noopener">
-          <span class="card-head">
-            <span class="mark" data-letter="${esc(item.name[0])}">
-              <img class="favicon" alt="" loading="lazy" decoding="async"
-                   src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=64"
-                   onerror="this.remove()">
-            </span>
-            <span class="card-name">${esc(item.name)}</span>
-          </span>
-          ${item.note ? `<span class="card-note">${esc(item.note)}</span>` : ""}
-        </a>
-        <div class="card-foot">
-          <span class="card-host">${esc(h)}</span>
-          ${tags ? `<span class="tags">${tags}</span>` : ""}
-        </div>
-      </article>
-    </li>`;
+    <a class="card ${extraClass}" href="${esc(item.url)}" target="_blank" rel="noopener">
+      <span class="mark" data-letter="${esc(item.name[0])}">
+        <img alt="" loading="lazy" decoding="async"
+             src="https://icons.duckduckgo.com/ip3/${esc(h)}.ico"
+             onerror="this.remove()">
+      </span>
+      <span class="card-body">
+        <span class="card-name">${esc(item.name)}</span>
+        ${item.note ? `<span class="card-note">${esc(item.note)}</span>` : ""}
+        <span class="card-host">${esc(h)}</span>
+      </span>
+    </a>`;
+}
+
+function buildTagbar() {
+  tagbar.innerHTML = TAGS.map(t =>
+    `<button class="pill${t === activeTag ? " is-on" : ""}" data-tag="${esc(t)}">${esc(t)}</button>`
+  ).join("");
 }
 
 function buildNav() {
   const names = ["All", ...CATEGORIES.map(c => c.name)];
   nav.innerHTML = names.map(n =>
-    `<button class="chip${n === activeCategory ? " is-active" : ""}" data-cat="${esc(n)}">${esc(n)}</button>`
+    `<button class="chip${n === activeCategory ? " is-on" : ""}" data-cat="${esc(n)}">${esc(n)}</button>`
   ).join("");
 }
 
 function buildFavs() {
-  const idle = activeCategory === "All" && !activeTag && !query;
-  const starred = CATEGORIES.flatMap(c => c.items).filter(i => i.star);
-
-  if (!idle || !starred.length) { favs.hidden = true; favs.innerHTML = ""; return; }
+  const starred = ALL.filter(i => i.star);
+  if (!filtered() || !starred.length) { favs.hidden = true; favs.innerHTML = ""; return; }
 
   favs.hidden = false;
-  favs.innerHTML = `
-    <h2 class="eyebrow">Favorites</h2>
-    <ul class="fav-list">${starred.map(i =>
-      `<li><a class="fav" href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.name)}</a></li>`
-    ).join("")}</ul>`;
+  favs.innerHTML =
+    `<h2 class="eyebrow">Favorites</h2>
+     <div class="fav-row">${starred.map(i => markup(i, "card--mini")).join("")}</div>`;
 }
 
-function buildClear() {
-  if (activeTag) {
-    clear.hidden = false;
-    clear.innerHTML = `${esc(activeTag)} <span aria-hidden="true">×</span>`;
-    clear.setAttribute("aria-label", `Clear ${activeTag} filter`);
-  } else {
-    clear.hidden = true;
-  }
-}
+/* ---- Render ---- */
 
 function render() {
-  let shown = 0;
+  let count = 0;
 
   grid.innerHTML = CATEGORIES
-    .filter(cat => activeCategory === "All" || cat.name === activeCategory)
-    .map(cat => {
-      const items = cat.items.filter(i => matches(i, cat.name));
+    .filter(c => activeCategory === "All" || c.name === activeCategory)
+    .map(c => {
+      const items = c.items.map(i => ({ ...i, cat: c.name })).filter(matches);
       if (!items.length) return "";
-      shown += items.length;
-
+      count += items.length;
       return `
         <section class="group">
-          <h2 class="group-title">${esc(cat.name)}<span class="count">${items.length}</span></h2>
-          <ul class="cards">${items.map(card).join("")}</ul>
+          <h2 class="group-title">${esc(c.name)}</h2>
+          <div class="cards">${items.map(i => markup(i)).join("")}</div>
         </section>`;
     }).join("");
 
-  empty.hidden = shown > 0;
-  const total = CATEGORIES.reduce((n, c) => n + c.items.length, 0);
-  meta.textContent = `${total} links · ${CATEGORIES.length} categories`;
+  empty.hidden = count > 0;
+  reset.hidden = filtered();
+  hint.hidden = !filtered();
+
+  meta.textContent = filtered()
+    ? `${ALL.length} links · ${CATEGORIES.length} categories`
+    : `${count} of ${ALL.length}`;
+
   buildFavs();
-  buildClear();
+  buildTagbar();
+  buildNav();
+
+  visible = [...favs.querySelectorAll(".card"), ...grid.querySelectorAll(".card")];
+  cursor = -1;
 }
 
-nav.addEventListener("click", e => {
-  const btn = e.target.closest(".chip");
-  if (!btn) return;
-  activeCategory = btn.dataset.cat;
-  buildNav();
-  render();
+/* ---- Keyboard ---- */
+
+function move(step) {
+  if (!visible.length) return;
+  visible[cursor]?.classList.remove("is-cursor");
+  cursor = (cursor + step + visible.length) % visible.length;
+  const el = visible[cursor];
+  el.classList.add("is-cursor");
+  el.scrollIntoView({ block: "nearest" });
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowDown") { e.preventDefault(); move(1); return; }
+  if (e.key === "ArrowUp")   { e.preventDefault(); move(-1); return; }
+
+  if (e.key === "Enter" && cursor > -1) {
+    e.preventDefault();
+    window.open(visible[cursor].href, "_blank", "noopener");
+    return;
+  }
+
+  if (e.key === "Escape") {
+    query = ""; activeTag = null; activeCategory = "All";
+    search.value = "";
+    render();
+    search.blur();
+    return;
+  }
+
+  // "/" or any plain typing jumps into search
+  if (document.activeElement !== search) {
+    if (e.key === "/" || (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey)) {
+      e.preventDefault();
+      search.focus();
+      if (e.key !== "/") { search.value += e.key; search.dispatchEvent(new Event("input")); }
+    }
+  }
 });
 
-grid.addEventListener("click", e => {
-  const tag = e.target.closest(".tag");
-  if (!tag) return;
-  activeTag = activeTag === tag.dataset.tag ? null : tag.dataset.tag;
-  render();
-});
-
-clear.addEventListener("click", () => { activeTag = null; render(); });
+/* ---- Events ---- */
 
 search.addEventListener("input", e => {
   query = e.target.value.trim().toLowerCase();
   render();
 });
 
-buildNav();
+tagbar.addEventListener("click", e => {
+  const btn = e.target.closest(".pill");
+  if (!btn) return;
+  activeTag = activeTag === btn.dataset.tag ? null : btn.dataset.tag;
+  render();
+});
+
+nav.addEventListener("click", e => {
+  const btn = e.target.closest(".chip");
+  if (!btn) return;
+  activeCategory = btn.dataset.cat;
+  render();
+});
+
+reset.addEventListener("click", () => {
+  query = ""; activeTag = null; activeCategory = "All";
+  search.value = "";
+  render();
+  search.focus();
+});
+
 render();
+search.focus({ preventScroll: true });

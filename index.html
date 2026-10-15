@@ -7,31 +7,47 @@
 <meta name="description" content="A personal hub for design, motion and build resources.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header class="header">
-    <h1 class="wordmark">Resource<span class="amp"> </span><em>Hub</em></h1>
-    <p class="sub">Everything I reach for, in one place.</p>
-    <p id="meta" class="meta"></p>
+  <div class="shell">
 
-    <div class="controls">
-      <input id="search" class="search" type="search" placeholder="Search" autocomplete="off" aria-label="Search resources">
-      <button id="clear" class="clear" hidden></button>
+    <header class="bar">
+      <h1 class="wordmark">Resource <em>Hub</em></h1>
+      <p id="meta" class="meta"></p>
+    </header>
+
+    <div class="searchbar">
+      <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input id="search" class="search" type="text" placeholder="Search resources" autocomplete="off" spellcheck="false" aria-label="Search resources">
+      <kbd id="hint" class="hint">/</kbd>
+      <button id="reset" class="reset" hidden aria-label="Clear filters">Clear</button>
     </div>
-  </header>
 
-  <section id="favs" class="favs" aria-label="Favorites"></section>
+    <div id="tagbar" class="tagbar" role="group" aria-label="Filter by tag"></div>
 
-  <nav id="nav" class="nav" aria-label="Categories"></nav>
+    <section id="favs" class="favs" aria-label="Favorites"></section>
 
-  <main id="grid" class="grid"></main>
+    <nav id="nav" class="nav" aria-label="Categories"></nav>
 
-  <p id="empty" class="empty" hidden>Nothing matches that.</p>
+    <main id="grid" class="grid"></main>
 
-  <footer class="footer">Edit <code>resources.js</code> to add a link.</footer>
+    <div id="empty" class="empty" hidden>
+      <p class="empty-title">No matches</p>
+      <p class="empty-sub">Try a different word, or clear the filters.</p>
+    </div>
+
+    <footer class="footer">
+      <span>Edit <code>resources.js</code> to add a link.</span>
+      <span class="keys"><kbd>↑</kbd><kbd>↓</kbd> move · <kbd>↵</kbd> open · <kbd>esc</kbd> clear</span>
+    </footer>
+
+  </div>
 
   <script src="resources.js"></script>
   <script src="app.js"></script>
