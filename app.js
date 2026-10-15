@@ -16,6 +16,15 @@ let query = "";
 let cursor = -1;          // keyboard selection into the visible list
 let visible = [];         // the <a> elements currently rendered, in order
 
+window.iconFallback = function (img) {
+  if (!img.dataset.step) {
+    img.dataset.step = "1";
+    img.src = "https://icons.duckduckgo.com/ip3/" + img.dataset.host + ".ico";
+  } else {
+    img.remove();
+  }
+};
+
 const esc = s => String(s).replace(/[&<>"]/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -38,20 +47,21 @@ function matches(item) {
 
 /* ---- Templates ---- */
 
-function markup(item, extraClass = "") {
+function markup(item, n, extraClass = "") {
   const h = host(item.url);
+  const num = n == null ? "" : String(n).padStart(2, "0");
   return `
-    <a class="card ${extraClass}" href="${esc(item.url)}" target="_blank" rel="noopener">
+    <a class="row ${extraClass}" href="${esc(item.url)}" target="_blank" rel="noopener">
+      <span class="num">${num}</span>
       <span class="mark" data-letter="${esc(item.name[0])}">
-        <img alt="" loading="lazy" decoding="async"
-             src="https://icons.duckduckgo.com/ip3/${esc(h)}.ico"
-             onerror="this.remove()">
+        <img alt="" loading="lazy" decoding="async" data-host="${esc(h)}"
+             src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128"
+             onerror="iconFallback(this)">
       </span>
-      <span class="card-body">
-        <span class="card-name">${esc(item.name)}</span>
-        ${item.note ? `<span class="card-note">${esc(item.note)}</span>` : ""}
-        <span class="card-host">${esc(h)}</span>
-      </span>
+      <span class="row-name">${esc(item.name)}</span>
+      <span class="row-note">${item.note ? esc(item.note) : ""}</span>
+      <span class="leader" aria-hidden="true"></span>
+      <span class="row-host">${esc(h)}</span>
     </a>`;
 }
 
@@ -74,8 +84,8 @@ function buildFavs() {
 
   favs.hidden = false;
   favs.innerHTML =
-    `<h2 class="eyebrow">Favorites</h2>
-     <div class="fav-row">${starred.map(i => markup(i, "card--mini")).join("")}</div>`;
+    `<p class="label">Favorites</p>
+     <div class="fav-row">${starred.map(i => markup(i, null, "row--mini")).join("")}</div>`;
 }
 
 /* ---- Render ---- */
@@ -91,8 +101,8 @@ function render() {
       count += items.length;
       return `
         <section class="group">
-          <h2 class="group-title">${esc(c.name)}</h2>
-          <div class="cards">${items.map(i => markup(i)).join("")}</div>
+          <h2 class="group-title"><span>${esc(c.name)}</span><span class="group-count">${String(items.length).padStart(2, "0")}</span></h2>
+          <div class="rows">${items.map((i, n) => markup(i, n + 1)).join("")}</div>
         </section>`;
     }).join("");
 
@@ -108,7 +118,7 @@ function render() {
   buildTagbar();
   buildNav();
 
-  visible = [...favs.querySelectorAll(".card"), ...grid.querySelectorAll(".card")];
+  visible = [...favs.querySelectorAll(".row"), ...grid.querySelectorAll(".row")];
   cursor = -1;
 }
 

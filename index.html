@@ -4,47 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Resource Hub</title>
-<meta name="description" content="A personal hub for design, motion and build resources.">
+<meta name="description" content="An index of design, motion and build resources.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <div class="shell">
 
-    <header class="bar">
-      <h1 class="wordmark">Resource <em>Hub</em></h1>
+    <header class="masthead">
+      <h1 class="wordmark">Resource Hub</h1>
       <p id="meta" class="meta"></p>
     </header>
 
-    <div class="searchbar">
-      <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true">
-        <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <input id="search" class="search" type="text" placeholder="Search resources" autocomplete="off" spellcheck="false" aria-label="Search resources">
-      <kbd id="hint" class="hint">/</kbd>
-      <button id="reset" class="reset" hidden aria-label="Clear filters">Clear</button>
+    <div class="searchwrap">
+      <label class="search-label" for="search">Find</label>
+      <input id="search" class="search" type="text" placeholder="type to filter" autocomplete="off" spellcheck="false">
+      <button id="reset" class="reset" hidden>Clear</button>
     </div>
 
-    <div id="tagbar" class="tagbar" role="group" aria-label="Filter by tag"></div>
+    <nav id="nav" class="nav" aria-label="Categories"></nav>
+
+    <div class="tagline">
+      <span class="label">Filter</span>
+      <div id="tagbar" class="tagbar" role="group" aria-label="Filter by tag"></div>
+    </div>
 
     <section id="favs" class="favs" aria-label="Favorites"></section>
-
-    <nav id="nav" class="nav" aria-label="Categories"></nav>
 
     <main id="grid" class="grid"></main>
 
     <div id="empty" class="empty" hidden>
       <p class="empty-title">No matches</p>
-      <p class="empty-sub">Try a different word, or clear the filters.</p>
+      <p class="empty-sub">Try another word, or clear the filters.</p>
     </div>
 
     <footer class="footer">
-      <span>Edit <code>resources.js</code> to add a link.</span>
-      <span class="keys"><kbd>↑</kbd><kbd>↓</kbd> move · <kbd>↵</kbd> open · <kbd>esc</kbd> clear</span>
+      <span>Edit <code>resources.js</code> to add an entry.</span>
+      <span class="keys">↑↓ move &nbsp;·&nbsp; ↵ open &nbsp;·&nbsp; esc clear</span>
     </footer>
 
   </div>
